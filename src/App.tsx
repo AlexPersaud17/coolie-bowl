@@ -1,7 +1,7 @@
 import { Fragment, type FormEvent, useEffect, useMemo, useState } from 'react'
 import { onValue, ref, runTransaction, set } from 'firebase/database'
 import { db } from './firebase'
-import landingImage from './assets/landing_page.png'
+import landingImage from './assets/landing_page.jpg'
 import seahawksLogo from './assets/Seattle_Seahawks_logo.svg'
 import patriotsLogo from './assets/New_England_Patriots_logo.svg'
 
