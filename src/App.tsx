@@ -247,7 +247,7 @@ function App() {
         return
       }
       const confirmRemove = window.confirm(
-        `Remove ${existing} from this square?`
+        `Remove ${existing} from this box?`
       )
       if (!confirmRemove) return
       set(ref(db, `board/${key}`), null)
@@ -256,7 +256,7 @@ function App() {
     }
 
     if (!playerName) {
-      setActionMessage('Enter your name to select a square.')
+      setActionMessage('Enter your name to select a box.')
       return
     }
 
@@ -266,7 +266,7 @@ function App() {
         setActionMessage('Selection removed.')
         return
       }
-      setActionMessage(`That square is already taken by ${existing}.`)
+      setActionMessage(`That box is already taken by ${existing}.`)
       return
     }
 
@@ -351,7 +351,7 @@ function App() {
   const handleLock = async () => {
     if (!playerName) return
     if (Object.keys(pendingSelections).length === 0) {
-      setActionMessage('Select at least one square before locking in.')
+      setActionMessage('Select at least one box before locking in.')
       return
     }
     const confirmLock = window.confirm(
@@ -375,7 +375,7 @@ function App() {
   const handleGenerateAxes = () => {
     if (!isAdmin) return
     if (!isBoardFull) {
-      window.alert('Fill all squares before generating numbers.')
+      window.alert('Fill all boxes before generating numbers.')
       return
     }
     const shuffledTop = shuffleNumbers()
@@ -432,7 +432,7 @@ function App() {
         <div className="relative flex min-h-screen w-full items-center justify-center">
           <img
             src={landingImage}
-            alt="Super Bowl Squares"
+            alt="Super Bowl Boxes"
             className="h-screen w-full object-contain"
           />
           <div className="absolute inset-0 flex items-end justify-center px-6 pb-10">
@@ -535,9 +535,9 @@ function App() {
           <div className="min-h-screen bg-white/85">
             <div className="mx-auto w-full max-w-md p-4">
           <header className="mb-4 rounded-3xl bg-white/90 p-4 text-center shadow-xl backdrop-blur-md">
-            <h1 className="text-2xl font-bold">Coolie Bowl LX Squares</h1>
+            <h1 className="text-2xl font-bold">Coolie Bowl LX Boxes</h1>
             <p className="mt-1 text-sm text-slate-600">
-              Select any open square. Colored squares are taken.
+              Select any open box. Colored boxes are taken.
             </p>
           </header>
 
@@ -849,8 +849,8 @@ function App() {
           ) : null}
 
           <div className="mt-4 text-center text-xs text-slate-500">
-            {filledCount}/100 squares filled
-            {isBoardFull ? ' • All squares claimed' : ''}
+            {filledCount}/100 boxes filled
+            {isBoardFull ? ' • All boxes claimed' : ''}
           </div>
 
           <div className="mt-4 rounded-2xl bg-white/80 p-4 text-sm text-slate-700 shadow-sm backdrop-blur-sm">
