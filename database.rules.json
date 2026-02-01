@@ -1,0 +1,29 @@
+{
+  "rules": {
+    ".read": true,
+    "board": {
+      "$cell": {
+        ".write": "!data.exists() || !newData.exists() || data.child('name').val() === newData.child('name').val()",
+        ".validate": "newData.hasChildren(['name','color','textColor']) || !newData.exists()",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 10"
+        },
+        "color": {
+          ".validate": "newData.isString()"
+        },
+        "textColor": {
+          ".validate": "newData.isString()"
+        }
+      }
+    },
+    "locks": {
+      ".write": true
+    },
+    "axes": {
+      ".write": true
+    },
+    "settings": {
+      ".write": true
+    }
+  }
+}

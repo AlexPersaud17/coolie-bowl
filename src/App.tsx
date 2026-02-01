@@ -1,5 +1,5 @@
 import { Fragment, type FormEvent, useEffect, useMemo, useState } from 'react'
-import { onValue, ref, set, update } from 'firebase/database'
+import { onValue, ref, runTransaction, set } from 'firebase/database'
 import { db } from './firebase'
 import landingImage from './assets/landing_page.png'
 import seahawksLogo from './assets/Seattle_Seahawks_logo.svg'
@@ -250,8 +250,12 @@ function App() {
         `Remove ${existing} from this box?`
       )
       if (!confirmRemove) return
-      set(ref(db, `board/${key}`), null)
-      setActionMessage('Selection removed.')
+      runTransaction(ref(db, `board/${key}`), (current) => {
+        if (!current) return current
+        return null
+      }).then(() => {
+        setActionMessage('Selection removed.')
+      })
       return
     }
 
@@ -262,8 +266,18 @@ function App() {
 
     if (existing && !isAdmin) {
       if (existing === playerName) {
-        set(ref(db, `board/${key}`), null)
-        setActionMessage('Selection removed.')
+        runTransaction(ref(db, `board/${key}`), (current) => {
+          if (current && typeof current === 'object' && 'name' in current) {
+            if (current.name === playerName) return null
+          }
+          return current
+        }).then((result) => {
+          if (result.committed) {
+            setActionMessage('Selection removed.')
+          } else {
+            setActionMessage('Unable to remove selection.')
+          }
+        })
         return
       }
       setActionMessage(`That box is already taken by ${existing}.`)
@@ -358,18 +372,49 @@ function App() {
       'Lock in your selections? You will not be able to change them.'
     )
     if (!confirmLock) return
-    const updates: Record<string, CellData | boolean | null> = {}
-    Object.keys(pendingSelections).forEach((key) => {
-      updates[`board/${key}`] = {
-        name: playerName,
-        color: playerColor,
-        textColor: playerTextColor,
-      }
+    const keys = Object.keys(pendingSelections)
+    const committedKeys: string[] = []
+    const conflicts: string[] = []
+
+    await Promise.all(
+      keys.map(async (key) => {
+        const result = await runTransaction(ref(db, `board/${key}`), (current) => {
+          if (current) return current
+          return {
+            name: playerName,
+            color: playerColor,
+            textColor: playerTextColor,
+          }
+        })
+
+        if (result.committed) {
+          committedKeys.push(key)
+        } else {
+          conflicts.push(key)
+        }
+      })
+    )
+
+    if (committedKeys.length > 0) {
+      await set(ref(db, `locks/${playerName}`), true)
+    }
+
+    if (conflicts.length > 0) {
+      setActionMessage(
+        `${committedKeys.length} saved, ${conflicts.length} already taken.`
+      )
+    } else {
+      setActionMessage('Selections saved.')
+    }
+
+    setPendingSelections((prev) => {
+      if (committedKeys.length === 0) return prev
+      const next = { ...prev }
+      committedKeys.forEach((key) => {
+        delete next[key]
+      })
+      return next
     })
-    updates[`locks/${playerName}`] = true
-    await update(ref(db), updates)
-    setPendingSelections({})
-    setActionMessage('Selections locked.')
   }
 
   const handleGenerateAxes = () => {
@@ -538,6 +583,9 @@ function App() {
             <h1 className="text-2xl font-bold">Coolie Bowl LX Boxes</h1>
             <p className="mt-1 text-sm text-slate-600">
               Select any open box. Colored boxes are taken.
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Ayuh good luck.
             </p>
           </header>
 
@@ -769,12 +817,12 @@ function App() {
                 </div>
               </div>
               <div className="grid flex-1 grid-cols-11 gap-px rounded-2xl bg-slate-400/40 p-px shadow-sm backdrop-blur-sm">
-                <div className="flex aspect-square items-center justify-center bg-white text-xs font-semibold text-slate-600" />
+                <div className="flex aspect-square items-center justify-center bg-gradient-to-br from-[#002244]/45 via-[#69BE28]/45 to-[#C60C30]/45 text-xs font-semibold text-slate-700" />
 
             {topAxis.map((number, index) => (
               <div
                 key={`top-${index}`}
-                className="flex aspect-square items-center justify-center bg-white text-xs font-semibold text-slate-700"
+                className="flex aspect-square items-center justify-center bg-gradient-to-br from-[#002244]/45 via-[#69BE28]/45 to-[#A5ACAF]/45 text-xs font-semibold text-slate-700"
               >
                 {number}
               </div>
@@ -782,7 +830,7 @@ function App() {
 
                 {leftAxis.map((row, rowIndex) => (
                   <Fragment key={`row-${rowIndex}`}>
-                    <div className="flex aspect-square items-center justify-center bg-white text-xs font-semibold text-slate-700">
+                    <div className="flex aspect-square items-center justify-center bg-gradient-to-br from-[#002244]/45 via-[#C60C30]/45 to-[#B0B7BC]/45 text-xs font-semibold text-slate-700">
                       {row}
                     </div>
 
