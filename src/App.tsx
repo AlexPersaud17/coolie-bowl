@@ -36,6 +36,13 @@ type Winners = {
   q4?: string
 }
 
+type Scores = {
+  q1?: string
+  q2?: string
+  q3?: string
+  q4?: string
+}
+
 function App() {
   const [board, setBoard] = useState<Record<string, CellData>>({})
   const [axes, setAxes] = useState<AxisData>({})
@@ -63,6 +70,7 @@ function App() {
   const [adminPasswordInput, setAdminPasswordInput] = useState('')
   const [adminAuthError, setAdminAuthError] = useState('')
   const [winners, setWinners] = useState<Winners>({})
+  const [scores, setScores] = useState<Scores>({})
 
   useEffect(() => {
     const boardRef = ref(db, 'board')
@@ -146,6 +154,16 @@ function App() {
     const unsubscribe = onValue(winnersRef, (snapshot) => {
       const data = snapshot.val() as Winners | null
       setWinners(data ?? {})
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    const scoresRef = ref(db, 'settings/scores')
+    const unsubscribe = onValue(scoresRef, (snapshot) => {
+      const data = snapshot.val() as Scores | null
+      setScores(data ?? {})
     })
 
     return () => unsubscribe()
@@ -391,6 +409,12 @@ function App() {
     setActionMessage('Winner updated.')
   }
 
+  const handleScoreUpdate = async (quarter: keyof Scores, score: string) => {
+    if (!isAdmin) return
+    await set(ref(db, `settings/scores/${quarter}`), score || null)
+    setActionMessage('Score updated.')
+  }
+
   const handleSaveMax = async () => {
     if (!isAdmin) return
     const value = Number(maxInput)
@@ -504,23 +528,20 @@ function App() {
           </div>
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-md p-4">
-          <header className="mb-4 space-y-2 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 shadow-sm">
-              <span>{isAdmin ? 'Admin Mode' : playerName}</span>
-              {isAdmin ? (
-                <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] text-white">
-                  Admin
-                </span>
-              ) : null}
-            </div>
+        <div
+          className="min-h-screen bg-cover bg-center"
+          style={{ backgroundImage: `url(${landingImage})` }}
+        >
+          <div className="min-h-screen bg-white/85">
+            <div className="mx-auto w-full max-w-md p-4">
+          <header className="mb-4 rounded-3xl bg-white/90 p-4 text-center shadow-xl backdrop-blur-md">
             <h1 className="text-2xl font-bold">Coolie Bowl LX Squares</h1>
-            <p className="text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-600">
               Select any open square. Colored squares are taken.
             </p>
           </header>
 
-          <div className="mb-4 rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm">
+          <div className="mb-4 rounded-2xl bg-white/80 p-4 text-sm text-slate-700 shadow-sm backdrop-blur-sm">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Cash Prizes</span>
               <span>$3 per box</span>
@@ -539,7 +560,7 @@ function App() {
                 Q4: $100
               </div>
             </div>
-            <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+            <div className="mt-3 rounded-xl border border-slate-200 bg-white/70 px-3 py-2 text-xs text-slate-600 backdrop-blur-sm">
               <p className="font-semibold uppercase tracking-wide text-slate-500">
                 Send payment via Zelle
               </p>
@@ -553,27 +574,27 @@ function App() {
           </div>
 
           {boardLocked ? (
-            <div className="mb-4 rounded-2xl bg-slate-900 px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-sm">
+            <div className="mb-4 rounded-2xl bg-slate-900/90 px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-sm backdrop-blur-sm">
               Board Locked - View Only
             </div>
           ) : null}
 
           {!isAdmin && !boardLocked ? (
-            <div className="mb-4 rounded-2xl bg-white px-4 py-2 text-center text-xs font-semibold text-slate-600 shadow-sm">
+            <div className="mb-4 rounded-2xl bg-white/80 px-4 py-2 text-center text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-sm">
               Selections left: {selectionsLeft} of {maxAllowed}
               {actionMessage ? ` • ${actionMessage}` : ''}
             </div>
           ) : null}
 
           {actionMessage && (isAdmin || boardLocked) ? (
-            <div className="mb-4 rounded-2xl bg-white px-4 py-2 text-center text-xs font-semibold text-slate-600 shadow-sm">
+            <div className="mb-4 rounded-2xl bg-white/80 px-4 py-2 text-center text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-sm">
               {actionMessage}
             </div>
           ) : null}
 
           {isAdmin ? (
             <div className="mb-4 space-y-3">
-              <div className="rounded-2xl bg-white p-3 shadow-sm">
+              <div className="rounded-2xl bg-white/80 p-3 shadow-sm backdrop-blur-sm">
               <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Max selections</span>
                 <span>{maxSelections ?? 10}</span>
@@ -603,7 +624,7 @@ function App() {
                 {boardLocked ? 'Unlock Board' : 'Lock Board'}
               </button>
             </div>
-              <div className="rounded-2xl bg-white p-3 shadow-sm">
+              <div className="rounded-2xl bg-white/80 p-3 shadow-sm backdrop-blur-sm">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Player Summary
                 </div>
@@ -625,16 +646,25 @@ function App() {
                   )}
                 </div>
               </div>
-              <div className="rounded-2xl bg-white p-3 shadow-sm">
+              <div className="rounded-2xl bg-white/80 p-3 shadow-sm backdrop-blur-sm">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Set Winners
                 </div>
                 {(['q1', 'q2', 'q3', 'q4'] as Array<keyof Winners>).map(
                   (quarter) => (
-                    <div key={quarter} className="mt-2 flex items-center gap-2">
-                      <span className="w-8 text-xs font-semibold uppercase text-slate-500">
-                        {quarter}
-                      </span>
+                    <div key={quarter} className="mt-3 space-y-2">
+                      <div className="text-[10px] font-semibold uppercase text-slate-500">
+                        {quarter.toUpperCase()}
+                      </div>
+                      <input
+                        type="text"
+                        value={scores[quarter as keyof Scores] ?? ''}
+                        onChange={(event) =>
+                          handleScoreUpdate(quarter, event.target.value)
+                        }
+                        placeholder="Score (e.g. 14-10)"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700 focus:border-slate-500 focus:outline-none"
+                      />
                       <select
                         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700 focus:border-slate-500 focus:outline-none"
                         value={winners[quarter] ?? ''}
@@ -642,7 +672,7 @@ function App() {
                           handleWinnerUpdate(quarter, event.target.value)
                         }
                       >
-                        <option value="">TBD</option>
+                        <option value="">TBD winner</option>
                         {nameCounts.map((entry) => (
                           <option key={entry.name} value={entry.name}>
                             {entry.name}
@@ -657,7 +687,7 @@ function App() {
           ) : null}
 
           {!isAdmin && boardLocked ? (
-            <div className="mb-4 rounded-2xl bg-white p-3 shadow-sm">
+            <div className="mb-4 rounded-2xl bg-white/80 p-3 shadow-sm backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => setShowAdminLogin((prev) => !prev)}
@@ -716,7 +746,7 @@ function App() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="w-12 shrink-0" />
-              <div className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#002244] via-[#69BE28] to-[#A5ACAF] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-sm">
+            <div className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#002244]/90 via-[#69BE28]/90 to-[#A5ACAF]/90 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-sm backdrop-blur-sm">
                 <span>Seattle Seahawks</span>
                 <img
                   src={seahawksLogo}
@@ -726,7 +756,7 @@ function App() {
               </div>
             </div>
             <div className="flex gap-2">
-              <div className="flex w-12 items-center justify-center rounded-2xl bg-gradient-to-b from-[#002244] via-[#C60C30] to-[#B0B7BC] text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-sm">
+              <div className="flex w-12 items-center justify-center rounded-2xl bg-gradient-to-b from-[#002244]/90 via-[#C60C30]/90 to-[#B0B7BC]/90 text-[10px] font-semibold uppercase tracking-[0.2em] text-white shadow-sm backdrop-blur-sm">
                 <div className="flex h-full flex-col items-center justify-center gap-3 py-2">
                   <img
                     src={patriotsLogo}
@@ -738,13 +768,13 @@ function App() {
                   </span>
                 </div>
               </div>
-              <div className="grid flex-1 grid-cols-11 gap-px rounded-2xl bg-slate-400 p-px shadow-sm">
-                <div className="flex aspect-square items-center justify-center bg-slate-100 text-xs font-semibold text-slate-600" />
+              <div className="grid flex-1 grid-cols-11 gap-px rounded-2xl bg-slate-400/40 p-px shadow-sm backdrop-blur-sm">
+                <div className="flex aspect-square items-center justify-center bg-white text-xs font-semibold text-slate-600" />
 
             {topAxis.map((number, index) => (
               <div
                 key={`top-${index}`}
-                className="flex aspect-square items-center justify-center bg-slate-100 text-xs font-semibold text-slate-700"
+                className="flex aspect-square items-center justify-center bg-white text-xs font-semibold text-slate-700"
               >
                 {number}
               </div>
@@ -752,7 +782,7 @@ function App() {
 
                 {leftAxis.map((row, rowIndex) => (
                   <Fragment key={`row-${rowIndex}`}>
-                    <div className="flex aspect-square items-center justify-center bg-slate-100 text-xs font-semibold text-slate-700">
+                    <div className="flex aspect-square items-center justify-center bg-white text-xs font-semibold text-slate-700">
                       {row}
                     </div>
 
@@ -773,13 +803,13 @@ function App() {
                           key={key}
                           type="button"
                         className={[
-                          'flex aspect-square items-center justify-center border border-slate-300 px-1 text-center leading-tight text-slate-700 transition break-words',
-                            isTaken
-                              ? 'cursor-default font-semibold text-slate-900'
-                              : 'bg-white hover:bg-slate-50',
-                            pending ? 'ring-2 ring-slate-400/50' : '',
-                            displayNameClass(),
-                          ].join(' ')}
+                          'flex aspect-square items-center justify-center border border-slate-300/60 px-1 text-center leading-tight text-slate-700 transition break-words bg-white/45 backdrop-blur-sm',
+                          isTaken
+                            ? 'cursor-default font-semibold text-slate-900'
+                            : 'hover:bg-white/90',
+                          pending ? 'ring-2 ring-slate-400/50' : '',
+                          displayNameClass(),
+                        ].join(' ')}
                           onClick={() => handleClaim(rowIndex, col)}
                           style={
                             hasSelection
@@ -823,23 +853,34 @@ function App() {
             {isBoardFull ? ' • All squares claimed' : ''}
           </div>
 
-          <div className="mt-4 rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm">
+          <div className="mt-4 rounded-2xl bg-white/80 p-4 text-sm text-slate-700 shadow-sm backdrop-blur-sm">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Quarter Winners</span>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600">
-              <div className="rounded-xl bg-slate-50 px-3 py-2 text-center">
-                Q1: {winners.q1 ?? 'TBD'}
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2 text-center">
-                Q2: {winners.q2 ?? 'TBD'}
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2 text-center">
-                Q3: {winners.q3 ?? 'TBD'}
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2 text-center">
-                Q4: {winners.q4 ?? 'TBD'}
-              </div>
+              {(['q1', 'q2', 'q3', 'q4'] as Array<keyof Winners>).map(
+                (quarter) => (
+                  <div
+                    key={quarter}
+                    className="rounded-xl bg-slate-50 px-3 py-2 text-center"
+                  >
+                    <div className="text-[10px] uppercase tracking-wide text-slate-500">
+                      {quarter.toUpperCase()} Score
+                    </div>
+                    <div className="text-xs font-semibold text-slate-700">
+                      {scores[quarter as keyof Scores] ?? 'TBD'}
+                    </div>
+                    <div className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">
+                      Winner
+                    </div>
+                    <div className="text-xs font-semibold text-slate-700">
+                      {winners[quarter] ?? 'TBD'}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
             </div>
           </div>
         </div>
