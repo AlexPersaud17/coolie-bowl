@@ -1,73 +1,35 @@
-# React + TypeScript + Vite
+# 🏈 Coolie Bowl LX
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A mobile-first Super Bowl **Boxes** app with a real-time board, admin controls, and live updates.
 
-Currently, two official plugins are available:
+## ✨ What It Does
+- **10x10 interactive box grid** with team axes and themed banners
+- **Live updates** via Firebase Realtime Database (everyone sees changes instantly)
+- **User personalization**: name + box color + text color preview
+- **Lock-in flow** with conflict-safe claims (transactions prevent overwrites)
+- **Admin controls**: lock board, reset board, set max boxes, generate random axes
+- **Quarter results**: winners + scores displayed to all users
+- **Social-ready**: OG metadata for link previews
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✅ Key Features
+- **Live board sync**: updates in real time across devices
+- **Conflict-safe claims**: transactions prevent race conditions
+- **Board lock**: view-only mode for attendees
+- **Admin dashboard**: box limits, winners, and scores
+- **Themed UI**: team colors, logos, and gradients
 
-## React Compiler
+## 🧰 Tech Stack
+- **React + TypeScript** (Vite) — UI + app logic
+- **Tailwind CSS** — layout, theme, and responsive styling
+- **Firebase Realtime Database** — storage + live sync
+- **GitHub Pages** — deployment
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🗂️ Project Structure
+- `src/App.tsx` — core UI, state, and Firebase logic
+- `src/firebase.ts` — Firebase initialization
+- `src/index.css` — Tailwind + global styles
+- `public/landing_page.jpg` — background + social preview image
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📌 Notes
+- Admin access is client‑side; for stricter security, add Firebase Auth + rules.
+- Social previews require a public image URL (see `index.html` OG tags).
